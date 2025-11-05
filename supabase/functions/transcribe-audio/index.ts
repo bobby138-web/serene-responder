@@ -42,6 +42,9 @@ serve(async (req) => {
   }
 
   try {
+    const apiKey = Deno.env.get('OPENAI_API_KEY');
+    console.log('API Key loaded:', apiKey ? `${apiKey.substring(0, 7)}...` : 'NOT FOUND');
+    
     const { audio } = await req.json()
     
     if (!audio) {
@@ -57,14 +60,14 @@ serve(async (req) => {
     formData.append('file', blob, 'audio.webm')
     formData.append('model', 'whisper-1')
 
-    // Send to OpenAI
-    const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-      },
-      body: formData,
-    })
+      // Send to OpenAI
+      const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+        },
+        body: formData,
+      })
 
     if (!response.ok) {
       throw new Error(`OpenAI API error: ${await response.text()}`)
