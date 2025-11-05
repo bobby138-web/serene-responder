@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useAudioRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
@@ -83,22 +84,14 @@ export const useAudioRecorder = () => {
   };
 
   const transcribeAudio = async (base64Audio: string): Promise<string> => {
-    const response = await fetch(
-      'https://yswulsjrcppvogrfgjqk.supabase.co/functions/v1/transcribe-audio',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ audio: base64Audio }),
-      }
-    );
+    const { data, error } = await supabase.functions.invoke('transcribe-audio', {
+      body: { audio: base64Audio },
+    });
 
-    if (!response.ok) {
-      throw new Error('Transcription failed');
+    if (error) {
+      throw new Error(error.message || 'Transcription failed');
     }
 
-    const data = await response.json();
     return data.text;
   };
 
